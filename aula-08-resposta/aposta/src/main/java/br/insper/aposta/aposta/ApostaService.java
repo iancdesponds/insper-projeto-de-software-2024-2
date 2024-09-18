@@ -7,7 +7,6 @@ import br.insper.aposta.partida.RetornarPartidaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,15 +27,13 @@ public class ApostaService {
 
         ResponseEntity<RetornarPartidaDTO> partida = partidaService.getPartida(aposta.getIdPartida());
 
-        if (partida.getStatusCode().is2xxSuccessful())  {
+        if (partida.getStatusCode().is2xxSuccessful()) {
             aposta.setStatus("REALIZADA");
             aposta.setDataAposta(LocalDateTime.now());
-
             return apostaRepository.save(aposta);
         } else {
             throw new PartidaNaoEncontradaException("Partida não encontrada");
         }
-
     }
 
     public List<Aposta> listar() {
@@ -44,7 +41,6 @@ public class ApostaService {
     }
 
     public Aposta getAposta(String idAposta) {
-
         Optional<Aposta> op = apostaRepository.findById(idAposta);
 
         if (!op.isPresent()) {
@@ -59,34 +55,27 @@ public class ApostaService {
 
         ResponseEntity<RetornarPartidaDTO> partida = partidaService.getPartida(aposta.getIdPartida());
 
-        if (partida.getStatusCode().is2xxSuccessful())  {
+        if (partida.getStatusCode().is2xxSuccessful()) {
             RetornarPartidaDTO partidaDTO = partida.getBody();
 
             if (partidaDTO.getStatus().equals("REALIZADA")) {
-
                 if (aposta.getResultado().equals("EMPATE") && partidaDTO.isEmpate()) {
                     aposta.setStatus("GANHOU");
-                }
-
-                if (aposta.getResultado().equals("VITORIA_MANDANTE") && partidaDTO.isVitoriaMandante()) {
+                } else if (aposta.getResultado().equals("VITORIA_MANDANTE") && partidaDTO.isVitoriaMandante()) {
                     aposta.setStatus("GANHOU");
-                }
-
-                if (aposta.getResultado().equals("EMPATE") && partidaDTO.isVitoriaVisitante()) {
+                } else if (aposta.getResultado().equals("VITORIA_VISITANTE") && partidaDTO.isVitoriaVisitante()) {
                     aposta.setStatus("GANHOU");
-                }
-
-                if (aposta.getStatus().equals("REALIZADA")) {
+                } else {
                     aposta.setStatus("PERDEU");
                 }
             } else {
                 throw new PartidaNaoRealizadaException("Partida não realizada");
             }
+
             return apostaRepository.save(aposta);
 
         } else {
             throw new PartidaNaoEncontradaException("Partida não encontrada");
         }
-
     }
 }
